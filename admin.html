@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Área do Administrador</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    #admin-section {
+      display: none;
+      margin-top: 1em;
+    }
+
+    .menu-hamburguer {
+      cursor: pointer;
+      font-size: 1.5em;
+      user-select: none;
+      padding: 0.5em;
+      border: 1px solid #ccc;
+      width: fit-content;
+      border-radius: 4px;
+    }
+
+    #logout {
+      margin-top: 1em;
+      background-color: red;
+      color: white;
+      padding: 0.5em 1em;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Área do Administrador</h1>
+
+  <div id="conteudo" style="display: none;">
+    <div class="menu-hamburguer" id="toggle-admin-section">☰ Cadastrar Técnico</div>
+
+    <section id="admin-section">
+      <h2>Gerenciamento de Usuários</h2>
+      <form id="registro-tecnico-form">
+        <label for="email">Email do Técnico:</label>
+        <input type="email" id="email-tecnico" required />
+        <label for="senha">Senha:</label>
+        <input type="password" id="senha-tecnico" required />
+        <button type="submit">Registrar Técnico</button>
+      </form>
+      <p id="msg-registro"></p>
+    </section>
+
+    <section id="tecnico-section">
+      <h2>Gerenciador de Localizações</h2>
+      <form id="form" autocomplete="off">
+        <label for="cliente">Nome do cliente</label>
+        <input type="text" id="cliente" required />
+        <label for="os">Número da OS</label>
+        <input type="text" id="os" required />
+        <label for="localizacao">Link da localização</label>
+        <input type="url" id="localizacao" required />
+        <button type="submit">Enviar</button>
+      </form>
+
+      <input type="search" id="busca" placeholder="Buscar por Cliente ou OS" />
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>OS</th>
+            <th>Localização</th>
+          </tr>
+        </thead>
+        <tbody id="tabela"></tbody>
+      </table>
+    </section>
+
+    <button id="logout">Sair</button>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

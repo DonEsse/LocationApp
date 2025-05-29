@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Área do Técnico</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Área do Técnico</h1>
+
+  <div class="top-bar">
+    <button id="logout">Sair</button>
+  </div>
+
+  <section id="tecnico-section">
+    <h2>Localizações Salvas</h2>
+
+    <input type="search" id="busca" placeholder="Buscar por cliente ou OS" />
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>OS</th>
+          <th>Localização</th>
+        </tr>
+      </thead>
+      <tbody id="tabela"></tbody>
+    </table>
+  </section>
+
+  <script type="module" src="tecnico.js"></script>
+</body>
+</html>

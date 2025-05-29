@@ -1,16 +1,42 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>replit</title>
-  <link href="style.css" rel="stylesheet" type="text/css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LocalizaçãoLemar</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  Hello world
-  <script src="script.js"></script>
-</body>
+  <h1>Gerenciador de Localização</h1>
 
+  <!-- Formulário fica escondido no modo técnico -->
+  <form id="form">
+    <input type="text" id="cliente" placeholder="Nome do cliente" required />
+    <input type="text" id="os" placeholder="Número da OS" required />
+    <input type="text" id="localizacao" placeholder="Link da localização" required />
+    <button type="submit">Enviar</button>
+  </form>
+
+  <div class="lista">
+    <input type="text" id="busca" class="search" placeholder="Buscar por cliente ou OS" />
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>OS</th>
+          <th>Localização</th>
+        </tr>
+      </thead>
+      <tbody id="tabela"></tbody>
+    </table>
+  </div>
+
+  <h2>LEMAR DIGITAL</h2>
+
+  <script type="module" src="script.js"></script>
+
+  <footer>
+    <p>&copy; 2025 Lemar Digital. Todos os direitos reservados.</p>
+  </footer>
+</body>
 </html>
