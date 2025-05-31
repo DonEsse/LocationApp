@@ -1,22 +1,20 @@
-const CACHE_NAME = "LocalizationApp-cache-v2";
+const CACHE_NAME = "LocalizationApp-cache-v2.1";
 const urlsToCache = [
   "/",
   "/index.html",
-  "/style.css",
-  "/script.js",
+  "/css/style.css",
+  "/js/script.js",
   "/manifest.json",
-  "/icon-192.png",
-  "/icon-512.png"
+  "/icons/icon-192.png",
+  "/icons/icon-512.png"
 ];
 
-// Instalando o Service Worker
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
 });
 
-// Ativando e limpando caches antigos
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(cacheNames =>
@@ -29,9 +27,9 @@ self.addEventListener("activate", event => {
   );
 });
 
-// Intercepta requisições e usa cache se offline
 self.addEventListener("fetch", event => {
   event.respondWith(
     fetch(event.request).catch(() => caches.match(event.request))
   );
 });
+
