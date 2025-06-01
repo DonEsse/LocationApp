@@ -1,13 +1,13 @@
-const CACHE_NAME = "LocalizationApp-cache-v2.2";
+const CACHE_NAME = "LocalizationApp-cache-v2.1";
 const urlsToCache = [
-  "/",
-  "/index.html",
-  "/css/style.css",
-  "/js/script.js",
-  "/manifest.json",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png"
+  "/LocationApp/index.html",
+  "/LocationApp/css/style.css",
+  "/LocationApp/js/script.js",
+  "/LocationApp/manifest.json",
+  "/LocationApp/icons/icon-192.png",
+  "/LocationApp/icons/icon-512.png"
 ];
+
 
 self.addEventListener("install", event => {
   event.waitUntil(
