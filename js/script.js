@@ -53,12 +53,12 @@ onAuthStateChanged(auth, async (user) => {
   const currentPage = window.location.pathname.split('/').pop();
 
   if (dados.role === 'admin') {
-    if (currentPage !== 'admin.html' && currentPage !== 'index.html') {
+    if (currentPage !== 'admin.html' && currentPage !== 'admin.html') {
       window.location.href = 'admin.html';
       return;
     }
   } else if (dados.role === 'tecnico') {
-    if (currentPage !== 'tecnico.html' && currentPage !== 'index.html') {
+    if (currentPage !== 'tecnico.html' && currentPage !== 'tecnico.html') {
       window.location.href = 'tecnico.html';
       return;
     }
