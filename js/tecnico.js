@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, get, query, orderByChild, limitToFirst } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBfg_lRG34ys48oC0c656z8nD3RMSuG_7s",
@@ -67,7 +67,7 @@ busca.addEventListener('input', () => {
 async function carregarLocalizacoes() {
   try {
     const localizacoesRef = ref(db, 'localizacoes');
-    const q = query(localizacoesRef, orderByChild('criadoEm'), limitToFirst(10));
+    const q = query(localizacoesRef, orderByChild('criadoEm')); // <-- REMOVIDO limitToFirst(10)
     const snapshot = await get(q);
 
     tabela.innerHTML = '';
