@@ -10,6 +10,7 @@ const urlsToCache = [
   "/js/registro.js",
   "/js/admin.js",
   "/js/tecnico.js",
+  "/js/tema.js",
   "/manifest.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png"
