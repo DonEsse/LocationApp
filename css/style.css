@@ -1,4 +1,4 @@
-/* Fonte e reset */
+css /* Fonte e reset */
 body {
   font-family: Arial, sans-serif;
   margin: 20px;
@@ -14,20 +14,28 @@ h1, h2 {
   color: #333;
 }
 
+/* Rótulos */
+label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+
+body.dark label {
+  color: #ffffff;
+}
+
 /* Formulário */
 form {
   margin-bottom: 20px;
   background: #fff;
-  padding: 15px;
+  padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-/* Labels */
-label {
-  color: #000;
-  display: block;
-  margin-bottom: 5px;
+body.dark form {
+  background: #1e1e1e;
 }
 
 /* Inputs */
@@ -38,17 +46,24 @@ input[type="url"],
 input[type="search"] {
   display: block;
   width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
   background-color: #f0f0f0;
   color: #000;
   border: 1px solid #ccc;
   border-radius: 4px;
+  height: 40px;
+  box-sizing: border-box;
 }
 
-/* Placeholder padrão */
-input::placeholder {
-  color: #777;
+body.dark input[type="text"],
+body.dark input[type="email"],
+body.dark input[type="password"],
+body.dark input[type="url"],
+body.dark input[type="search"] {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  border: 1px solid #444;
 }
 
 /* Botões padrão */
@@ -92,6 +107,20 @@ th, td {
   text-align: left;
 }
 
+body.dark table {
+  background-color: #1e1e1e;
+  color: #fff;
+}
+
+body.dark th, body.dark td {
+  border: 1px solid #555;
+}
+
+/* Links */
+body.dark a {
+  color: #90caf9;
+}
+
 /* Botão para mostrar seção admin */
 #toggle-admin-section {
   font-size: 24px;
@@ -104,49 +133,6 @@ th, td {
 /* Seção admin escondida por padrão */
 #admin-section {
   display: none;
-}
-
-/* ----------- TEMA ESCURO ----------- */
-body.dark {
-  background-color: #121212;
-  color: #ffffff;
-}
-
-body.dark form {
-  background-color: #1e1e1e;
-  color: #ffffff;
-}
-
-body.dark label {
-  color: #ffffff;
-}
-
-body.dark input[type="text"],
-body.dark input[type="email"],
-body.dark input[type="password"],
-body.dark input[type="url"],
-body.dark input[type="search"],
-body.dark button {
-  background-color: #2a2a2a;
-  color: #ffffff;
-  border: 1px solid #444;
-}
-
-body.dark input::placeholder {
-  color: #cccccc;
-}
-
-body.dark table {
-  background-color: #1e1e1e;
-  color: #fff;
-}
-
-body.dark th, body.dark td {
-  border: 1px solid #555;
-}
-
-body.dark a {
-  color: #90caf9;
 }
 
 /* Botão de alternar tema */
@@ -166,4 +152,12 @@ body.dark a {
 body.dark #toggle-tema {
   background-color: #333;
   color: #fff;
+}
+body.dark h1,
+body.dark h2 {
+  color: #ffffff;
+}
+body.dark {
+  background-color: #121212 !important;
+  color: #ffffff !important;
 }
