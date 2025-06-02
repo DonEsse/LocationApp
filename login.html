@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Login</title>
-<link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login</title>
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Manifesto PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2196f3" />
 </head>
 <body>
+  <button id="toggle-tema">🌙</button>
   <h1>Login</h1>
   <form id="login-form" autocomplete="off">
     <label for="email">Email:</label>
@@ -26,16 +31,15 @@
     import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
-  apiKey: "AIzaSyBfg_lRG34ys48oC0c656z8nD3RMSuG_7s",
-  authDomain: "locationapplemar.firebaseapp.com",
-  databaseURL: "https://locationapplemar-default-rtdb.firebaseio.com",
-  projectId: "locationapplemar",
-  storageBucket: "locationapplemar.appspot.com",
-  messagingSenderId: "934968303323",
-  appId: "1:934968303323:web:3799b63439697a88b776fe",
-  measurementId: "G-Q3CP9QCQYY"
-};
-
+      apiKey: "AIzaSyBfg_lRG34ys48oC0c656z8nD3RMSuG_7s",
+      authDomain: "locationapplemar.firebaseapp.com",
+      databaseURL: "https://locationapplemar-default-rtdb.firebaseio.com",
+      projectId: "locationapplemar",
+      storageBucket: "locationapplemar.appspot.com",
+      messagingSenderId: "934968303323",
+      appId: "1:934968303323:web:3799b63439697a88b776fe",
+      measurementId: "G-Q3CP9QCQYY"
+    };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -59,7 +63,6 @@
         const userCred = await signInWithEmailAndPassword(auth, email, senha);
         const uid = userCred.user.uid;
 
-        // Busca role do usuário
         const snapshot = await get(ref(db, 'usuarios/' + uid));
         const dados = snapshot.val();
 
@@ -71,7 +74,6 @@
           return;
         }
 
-        // Redireciona conforme role
         if (dados.role === "admin") {
           window.location.href = "admin.html";
         } else if (dados.role === "tecnico") {
@@ -81,14 +83,23 @@
           mensagem.style.color = "red";
           await auth.signOut();
         }
-
       } catch (error) {
-        mensagem.textContent = "Erro: " + error.message;
+        mensagem.textContent = "Erro ao fazer login: " + error.message;
         mensagem.style.color = "red";
-      } finally {
         botao.disabled = false;
       }
     });
+  </script>
+  <script type="module" src="js/tema.js"></script>
+  <!-- ✅ Registro do Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('✅ Service Worker registrado:', reg.scope))
+          .catch(err => console.error('❌ Erro no Service Worker:', err));
+      });
+    }
   </script>
 </body>
 </html>

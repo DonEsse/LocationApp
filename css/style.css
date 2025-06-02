@@ -1,15 +1,20 @@
+/* Fonte e reset */
 body {
   font-family: Arial, sans-serif;
   margin: 20px;
   padding: 0;
-  background-color: #f4f4f4;
+  background-color: #ffffff;
+  color: #000000;
+  transition: background-color 0.3s, color 0.3s;
 }
 
+/* Títulos */
 h1, h2 {
   text-align: center;
   color: #333;
 }
 
+/* Formulário */
 form {
   margin-bottom: 20px;
   background: #fff;
@@ -18,6 +23,7 @@ form {
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
+/* Inputs */
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -27,10 +33,13 @@ input[type="search"] {
   width: 100%;
   padding: 10px;
   margin-bottom: 10px;
+  background-color: #f0f0f0;
+  color: #000;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
 
+/* Botões padrão */
 button {
   padding: 10px 20px;
   background-color: #007BFF;
@@ -44,6 +53,18 @@ button:hover {
   background-color: #0056b3;
 }
 
+/* Botão de logout */
+#logout {
+  float: right;
+  background-color: #dc3545;
+  margin-bottom: 20px;
+}
+
+#logout:hover {
+  background-color: #c82333;
+}
+
+/* Tabela */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -58,17 +79,8 @@ th, td {
   padding: 10px;
   text-align: left;
 }
-  
-#logout {
-  float: right;
-  background-color: #dc3545;
-  margin-bottom: 20px;
-}
 
-#logout:hover {
-  background-color: #c82333;
-}
-
+/* Botão para mostrar seção admin */
 #toggle-admin-section {
   font-size: 24px;
   background: none;
@@ -77,6 +89,56 @@ th, td {
   margin-bottom: 10px;
 }
 
+/* Seção admin escondida por padrão */
 #admin-section {
   display: none;
+}
+
+/* ----------- TEMA ESCURO ----------- */
+body.dark {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+body.dark input[type="text"],
+body.dark input[type="email"],
+body.dark input[type="password"],
+body.dark input[type="url"],
+body.dark input[type="search"],
+body.dark button {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  border: 1px solid #444;
+}
+
+body.dark table {
+  background-color: #1e1e1e;
+  color: #fff;
+}
+
+body.dark th, body.dark td {
+  border: 1px solid #555;
+}
+
+body.dark a {
+  color: #90caf9;
+}
+
+/* Botão de alternar tema */
+#toggle-tema {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  z-index: 1000;
+}
+
+body.dark #toggle-tema {
+  background-color: #333;
+  color: #fff;
 }

@@ -45,13 +45,14 @@ registroForm.addEventListener("submit", async (e) => {
     });
   } catch (erro) {
     msg.textContent = "Erro ao registrar técnico: " + erro.message;
+    console.error("Erro no registro:", erro);
   }
 });
 
 // Logout
 const botaoLogout = document.getElementById("logout");
 botaoLogout.addEventListener("click", () => {
-  signOut(auth);
+  signOut(auth).catch(console.error);
 });
 
 const form = document.getElementById("form");
@@ -86,7 +87,7 @@ function carregarLocalizacoes() {
       linha.innerHTML = `
         <td>${cliente}</td>
         <td>${os}</td>
-        <td><a href="${localizacao}" target="_blank">Abrir Localização</a></td>
+        <td><a href="${localizacao}" target="_blank" rel="noopener noreferrer">Abrir Localização</a></td>
         <td>
           <button onclick="editarLocalizacao('${key}', '${cliente}', '${os}', '${localizacao}')">Editar</button>
           <button onclick="excluirLocalizacao('${key}')">Excluir</button>
@@ -94,7 +95,7 @@ function carregarLocalizacoes() {
       `;
       tabela.appendChild(linha);
     });
-  });
+  }, { onlyOnce: false }); // Mantém escutando mudanças para atualizar tabela
 }
 
 carregarLocalizacoes();
@@ -118,38 +119,41 @@ form.addEventListener("submit", (e) => {
 
   const localizacoesRef = ref(db, "localizacoes");
 
-  onValue(localizacoesRef, (snapshot) => {
-    let duplicada = false;
-    snapshot.forEach((child) => {
-      if (child.val().os === os && child.key !== editKey) {
-        duplicada = true;
+  // Usar get() em vez de onValue para pegar dados uma vez (importar get do Firebase)
+  import('https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js').then(({ get }) => {
+    get(localizacoesRef).then((snapshot) => {
+      let duplicada = false;
+      snapshot.forEach((child) => {
+        if (child.val().os === os && child.key !== editKey) {
+          duplicada = true;
+        }
+      });
+
+      if (duplicada) {
+        alert("Essa OS já está cadastrada.");
+        return;
       }
-    });
 
-    if (duplicada) {
-      alert("Essa OS já está cadastrada.");
-      return;
-    }
-
-    if (editKey) {
-      // Atualiza localização existente
-      const updates = {};
-      updates[`localizacoes/${editKey}`] = { cliente, os, localizacao };
-      update(ref(db), updates)
-        .then(() => {
-          alert("Localização atualizada com sucesso.");
-          form.reset();
-          editKey = null;
-          form.querySelector("button[type=submit]").textContent = "Enviar";
-          btnCancelarEdicao.style.display = "none";
-        })
-        .catch((error) => alert("Erro ao atualizar: " + error.message));
-    } else {
-      // Adiciona nova localização
-      push(localizacoesRef, { cliente, os, localizacao });
-      form.reset();
-    }
-  }, { onlyOnce: true });
+      if (editKey) {
+        // Atualiza localização existente
+        const updates = {};
+        updates[`localizacoes/${editKey}`] = { cliente, os, localizacao };
+        update(ref(db), updates)
+          .then(() => {
+            alert("Localização atualizada com sucesso.");
+            form.reset();
+            editKey = null;
+            form.querySelector("button[type=submit]").textContent = "Enviar";
+            btnCancelarEdicao.style.display = "none";
+          })
+          .catch((error) => alert("Erro ao atualizar: " + error.message));
+      } else {
+        // Adiciona nova localização
+        push(localizacoesRef, { cliente, os, localizacao });
+        form.reset();
+      }
+    }).catch(err => console.error("Erro ao obter localizações:", err));
+  });
 });
 
 // Função para editar localização
@@ -176,12 +180,14 @@ window.excluirLocalizacao = (key) => {
   }
 };
 
-// Toggle menu técnico
+// Toggle menu admin (valida existência do botão e seção)
 const toggle = document.getElementById("toggle-admin-section");
 const adminSection = document.getElementById("admin-section");
-toggle.addEventListener("click", () => {
-  adminSection.style.display = adminSection.style.display === "none" ? "block" : "none";
-});
+if (toggle && adminSection) {
+  toggle.addEventListener("click", () => {
+    adminSection.style.display = adminSection.style.display === "none" ? "block" : "none";
+  });
+}
 
 // Esconde botão cancelar edição inicialmente
 btnCancelarEdicao.style.display = "none";

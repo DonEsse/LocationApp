@@ -4,20 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LocalizaçãoLemar</title>
-  <link rel="manifest" href="/LocationApp/manifest.json" />
+  <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#2196f3" />
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/LocationApp/js/sw.js")
-          .then(reg => console.log("Service Worker registrado!", reg))
-          .catch(err => console.log("Erro no SW:", err));
-      }
-    </script>
-
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js")
+        .then(reg => console.log("Service Worker registrado!", reg))
+        .catch(err => console.log("Erro no SW:", err));
+    }
+    
+  </script>
+  <button id="toggle-tema">🌙</button>
   <h1>Gerenciador de Localização</h1>
 
   <!-- Formulário fica escondido no modo técnico -->
@@ -42,12 +42,7 @@
     </table>
   </div>
 
-  <h2>LEMAR DIGITAL</h2>
-
   <script type="module" src="js/script.js"></script>
-
-  <footer>
-    <p>&copy; 2025 Lemar Digital. Todos os direitos reservados.</p>
-  </footer>
+  <script type="module" src="js/tema.js"></script>
 </body>
 </html>

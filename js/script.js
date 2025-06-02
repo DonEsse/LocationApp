@@ -22,7 +22,6 @@ const firebaseConfig = {
   measurementId: "G-Q3CP9QCQYY"
 };
 
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
@@ -107,3 +106,4 @@ busca?.addEventListener('input', () => {
     tr.style.display = (cliente.includes(termo) || os.includes(termo)) ? '' : 'none';
   });
 });
+
