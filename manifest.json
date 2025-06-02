@@ -1,7 +1,7 @@
 {
   "name": "Localização Lemar",
   "short_name": "Lemar",
-  "start_url": "/login.html?source=pwa",
+  "start_url": "login.html?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2196f3",
