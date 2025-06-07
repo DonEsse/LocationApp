@@ -1,17 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import {
-  getDatabase,
-  ref,
-  get,
-  child
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, get, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBfg_lRG34ys48oC0c656z8nD3RMSuG_7s",
   authDomain: "locationapplemar.firebaseapp.com",
@@ -27,93 +17,82 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// DOM elements
-const tabela = document.getElementById("tabela");
-const busca = document.getElementById("busca");
-const contador = document.getElementById("contador");
-const carregarMaisBtn = document.getElementById("carregarMaisBtn");
-const loading = document.getElementById("loading");
+const tabela = document.getElementById('tabela');
+const busca = document.getElementById('busca');
+const logoutBtn = document.getElementById('logout');
 
-// Estados
-let dadosOriginal = [];
-let limite = 10;
-let offset = 0;
-
-// Verifica login e busca dados
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async user => {
   if (!user) {
-    window.location.href = "login.html";
+    console.log('Usuário não está logado, redirecionando...');
+    window.location.href = 'login.html';
     return;
   }
 
+  console.log('Usuário logado:', user.uid);
+
   try {
-    loading.style.display = "block";
+    const userSnapshot = await get(ref(db, 'usuarios/' + user.uid));
+    const userData = userSnapshot.val();
 
-    const snapshot = await get(child(ref(db), "localizacoes"));
-    if (snapshot.exists()) {
-      let dadosArray = Object.entries(snapshot.val()).map(([key, val]) => ({ key, ...val }));
-
-      if (dadosArray.length > 0 && dadosArray[0].timestamp !== undefined) {
-        dadosArray.sort((a, b) => b.timestamp - a.timestamp);
-      } else {
-        dadosArray.sort((a, b) => (a.key < b.key ? 1 : -1));
-      }
-
-      dadosOriginal = dadosArray;
-      offset = 0;
-      renderizarTabela();
-    } else {
-      tabela.innerHTML = '<tr><td colspan="3">Nenhum dado encontrado.</td></tr>';
-      contador.textContent = '';
-      carregarMaisBtn.style.display = 'none';
+    if (!userData) {
+      alert('Usuário sem dados no banco. Contate o administrador.');
+      await signOut(auth);
+      window.location.href = 'login.html';
+      return;
     }
 
+    if (userData.role !== 'tecnico') {
+      alert('Acesso negado. Você não é técnico.');
+      await signOut(auth);
+      window.location.href = 'login.html';
+      return;
+    }
+
+    console.log('Acesso liberado para técnico.');
+    carregarLocalizacoes();
   } catch (error) {
-    console.error("Erro ao buscar dados:", error);
-    alert("Erro ao carregar dados.");
-  } finally {
-    loading.style.display = "none";
+    console.error('Erro ao verificar dados do usuário:', error);
   }
 });
 
-// Renderizar tabela paginada e com busca
-function renderizarTabela() {
+busca.addEventListener('input', () => {
   const termo = busca.value.toLowerCase();
+  Array.from(tabela.children).forEach(tr => {
+    const cliente = tr.children[0]?.textContent.toLowerCase() || '';
+    const os = tr.children[1]?.textContent.toLowerCase() || '';
+    tr.style.display = (cliente.includes(termo) || os.includes(termo)) ? '' : 'none';
+  });
+});
 
-  const filtrados = dadosOriginal.filter((item) =>
-    (item.cliente || '').toLowerCase().includes(termo) ||
-    (item.os || '').toLowerCase().includes(termo)
-  );
+async function carregarLocalizacoes() {
+  try {
+    const localizacoesRef = ref(db, 'localizacoes');
+    const q = query(localizacoesRef, orderByChild('criadoEm')); // <-- REMOVIDO limitToFirst(10)
+    const snapshot = await get(q);
 
-  const exibidos = filtrados.slice(0, offset + limite);
+    tabela.innerHTML = '';
 
-  tabela.innerHTML = exibidos.map((item) => `
-    <tr>
-      <td>${item.cliente || ''}</td>
-      <td>${item.os || ''}</td>
-      <td><a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer">Ver Mapa</a></td>
-    </tr>
-  `).join("");
+    if (!snapshot.exists()) {
+      tabela.innerHTML = `<tr><td colspan="3">Nenhuma localização encontrada.</td></tr>`;
+      return;
+    }
 
-  carregarMaisBtn.style.display = exibidos.length < filtrados.length ? "block" : "none";
-
-  contador.textContent = `Mostrando ${exibidos.length} de ${filtrados.length}`;
+    snapshot.forEach(child => {
+      const { cliente, os, localizacao } = child.val();
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${cliente}</td>
+        <td>${os}</td>
+        <td><a href="${localizacao}" target="_blank" rel="noopener noreferrer">Ver localização</a></td>
+      `;
+      tabela.appendChild(tr);
+    });
+  } catch (error) {
+    console.error('Erro ao carregar localizações:', error);
+  }
 }
 
-// Filtros
-busca.addEventListener("input", () => {
-  offset = 0;
-  renderizarTabela();
-});
-
-// Paginação
-carregarMaisBtn.addEventListener("click", () => {
-  offset += limite;
-  renderizarTabela();
-});
-
-// Logout
-document.getElementById("logout")?.addEventListener("click", async () => {
+logoutBtn.addEventListener('click', async () => {
   await signOut(auth);
-  window.location.href = "login.html";
+  window.location.href = 'login.html';
 });

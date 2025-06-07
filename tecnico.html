@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <button id="toggle-tema" aria-label="Alternar tema">🌙</button>
+  <button id="toggle-tema">🌙</button>
   <h1>Área do Técnico</h1>
 
   <div class="top-bar">
@@ -17,16 +17,7 @@
   <section id="tecnico-section">
     <h2>Localizações Salvas</h2>
 
-    <input
-      type="search"
-      id="busca"
-      placeholder="Buscar por cliente ou OS"
-      aria-label="Buscar por cliente ou OS"
-    />
-
-    <!-- Indicador de carregamento -->
-    <div id="loading" style="display:none;" role="alert">Carregando dados...</div>
-
+    <input type="search" id="busca" placeholder="Buscar por cliente ou OS" />
     <table>
       <thead>
         <tr>
@@ -35,21 +26,9 @@
           <th>Localização</th>
         </tr>
       </thead>
-      <tbody id="tabela" aria-live="polite"></tbody>
+      <tbody id="tabela"></tbody>
     </table>
-
-    <!-- Contador de registros -->
-    <p id="contador" style="margin-top: 10px; font-weight: bold;"></p>
-
-    <!-- Botão "Carregar mais" -->
-    <button
-      id="carregarMaisBtn"
-      style="display: none; padding: 10px 20px; margin-top: 10px; cursor: pointer;"
-    >
-      Carregar mais
-    </button>
   </section>
-
   <script type="module" src="js/tecnico.js"></script>
   <script type="module" src="js/tema.js"></script>
 </body>

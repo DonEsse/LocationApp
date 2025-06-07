@@ -1,4 +1,4 @@
-const CACHE_NAME = "LocationApp-cache-v2.3";
+const CACHE_NAME = "LocationApp-cache-v2.2";
 const urlsToCache = [
   "/index.html",
   "/login.html",
