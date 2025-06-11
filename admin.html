@@ -18,22 +18,27 @@
   </style>
 </head>
 <body>
-  <button id="toggle-tema">🌙</button>
+  <button id="toggle-tema" aria-label="Alternar tema">🌙</button>
   <h1>Área do Administrador</h1>
 
   <div id="conteudo" style="display: none;">
     <div class="menu-hamburguer" id="toggle-admin-section">☰ Cadastrar Técnico</div>
 
     <section id="admin-section">
-      <h2>Gerenciamento de Usuários</h2>
+      <h2>Cadastro de Técnico</h2>
       <form id="registro-tecnico-form">
-        <label for="email-tecnico">Email do Técnico:</label>
+        <label for="nome-tecnico">Nome do Técnico:</label>
+        <input type="text" id="nome-tecnico" required />
+
+        <label for="email-tecnico">Email:</label>
         <input type="email" id="email-tecnico" required />
 
         <label for="senha-tecnico">Senha:</label>
         <input type="password" id="senha-tecnico" required />
 
-        <button type="submit">Registrar Técnico</button>
+        <input type="hidden" id="role-tecnico" value="tecnico" />
+
+        <button type="submit">Salvar</button>
       </form>
       <p id="msg-registro"></p>
     </section>
@@ -44,6 +49,9 @@
         <label for="cliente">Nome do cliente:</label>
         <input type="text" id="cliente" required />
 
+        <label for="conta">Conta do cliente:</label>
+        <input type="text" id="conta" required /> 
+        
         <label for="os">Número da OS:</label>
         <input type="text" id="os" required />
 
@@ -53,18 +61,24 @@
         <button type="submit">Enviar</button>
       </form>
 
-      <input type="search" id="busca" placeholder="Buscar por Cliente ou OS" />
+      <input type="search" id="busca" placeholder="Buscar por Cliente, Conta ou OS" />
 
       <table>
         <thead>
           <tr>
             <th>Cliente</th>
+            <th>Conta</th>
             <th>OS</th>
             <th>Localização</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody id="tabela"></tbody>
       </table>
+
+      <p id="contador" style="margin-top: 10px; font-weight: bold;"></p>
+
+      <button id="carregar-mais">Carregar mais</button>
     </section>
 
     <button id="logout">Sair</button>

@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, get, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBfg_lRG34ys48oC0c656z8nD3RMSuG_7s",
@@ -20,6 +20,10 @@ const db = getDatabase(app);
 const tabela = document.getElementById('tabela');
 const busca = document.getElementById('busca');
 const logoutBtn = document.getElementById('logout');
+const contador = document.getElementById('contador');
+
+let todasLocalizacoes = [];
+let quantidadeMostrada = 10;
 
 onAuthStateChanged(auth, async user => {
   if (!user) {
@@ -28,69 +32,74 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  console.log('Usuário logado:', user.uid);
-
   try {
     const userSnapshot = await get(ref(db, 'usuarios/' + user.uid));
     const userData = userSnapshot.val();
 
-    if (!userData) {
-      alert('Usuário sem dados no banco. Contate o administrador.');
-      await signOut(auth);
-      window.location.href = 'login.html';
-      return;
-    }
-
-    if (userData.role !== 'tecnico') {
+    if (!userData || userData.role !== 'tecnico') {
       alert('Acesso negado. Você não é técnico.');
       await signOut(auth);
       window.location.href = 'login.html';
       return;
     }
 
-    console.log('Acesso liberado para técnico.');
     carregarLocalizacoes();
   } catch (error) {
     console.error('Erro ao verificar dados do usuário:', error);
   }
 });
 
-busca.addEventListener('input', () => {
+busca.addEventListener("input", () => {
   const termo = busca.value.toLowerCase();
-  Array.from(tabela.children).forEach(tr => {
-    const cliente = tr.children[0]?.textContent.toLowerCase() || '';
-    const os = tr.children[1]?.textContent.toLowerCase() || '';
-    tr.style.display = (cliente.includes(termo) || os.includes(termo)) ? '' : 'none';
+  const linhas = tabela.querySelectorAll("tr");
+  let visiveis = 0;
+  linhas.forEach((linha) => {
+    const texto = linha.textContent.toLowerCase();
+    const visivel = texto.includes(termo);
+    linha.style.display = visivel ? "" : "none";
+    if (visivel) visiveis++;
   });
+  contador.textContent = `Exibindo ${visiveis} de ${todasLocalizacoes.length} localizações cadastradas.`;
 });
 
-async function carregarLocalizacoes() {
-  try {
-    const localizacoesRef = ref(db, 'localizacoes');
-    const q = query(localizacoesRef, orderByChild('criadoEm')); // <-- REMOVIDO limitToFirst(10)
-    const snapshot = await get(q);
-
-    tabela.innerHTML = '';
-
-    if (!snapshot.exists()) {
-      tabela.innerHTML = `<tr><td colspan="3">Nenhuma localização encontrada.</td></tr>`;
-      return;
-    }
-
-    snapshot.forEach(child => {
-      const { cliente, os, localizacao } = child.val();
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${cliente}</td>
-        <td>${os}</td>
-        <td><a href="${localizacao}" target="_blank" rel="noopener noreferrer">Ver localização</a></td>
-      `;
-      tabela.appendChild(tr);
+function carregarLocalizacoes() {
+  onValue(ref(db, "localizacoes"), (snapshot) => {
+    const dados = [];
+    snapshot.forEach((child) => {
+      dados.push({ key: child.key, ...child.val() });
     });
-  } catch (error) {
-    console.error('Erro ao carregar localizações:', error);
-  }
+
+    tabela.innerHTML = "";
+    dados.reverse(); // mais recentes primeiro
+
+    todasLocalizacoes = dados;
+    quantidadeMostrada = 10;
+    atualizarTabela();
+  }, { onlyOnce: false });
 }
+
+function atualizarTabela() {
+  const dadosExibidos = todasLocalizacoes.slice(0, quantidadeMostrada);
+  tabela.innerHTML = "";
+
+  dadosExibidos.forEach(({ key, cliente, conta, os, localizacao }) => {
+    const linha = document.createElement("tr");
+    linha.innerHTML = `
+      <td>${cliente}</td>
+      <td>${conta}</td>
+      <td>${os}</td>
+      <td><a href="${localizacao}" target="_blank" rel="noopener noreferrer">Abrir Localização</a></td>
+    `;
+    tabela.appendChild(linha);
+  });
+
+  contador.textContent = `Exibindo ${dadosExibidos.length} de ${todasLocalizacoes.length} localizações cadastradas.`;
+}
+
+document.getElementById("carregar-mais").addEventListener("click", () => {
+  quantidadeMostrada += 10;
+  atualizarTabela();
+});
 
 logoutBtn.addEventListener('click', async () => {
   await signOut(auth);

@@ -21,8 +21,6 @@ const firebaseConfig = {
   measurementId: "G-Q3CP9QCQYY"
 };
 
-
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
@@ -30,53 +28,48 @@ const db = getDatabase(app);
 const form = document.getElementById("login-form");
 const mensagem = document.getElementById("mensagem");
 
-form.addEventListener("submit", async (e) => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const email = form.email.value.trim();
-  const senha = form.senha.value.trim();
+  botao.disabled = true;
+  mensagem.textContent = "Entrando...";
+  mensagem.style.color = "black";
 
-  mensagem.textContent = "";
+  const email = document.getElementById('email').value;
+  const senha = document.getElementById('senha').value;
 
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, senha);
-    const user = userCredential.user;
+    const userCred = await signInWithEmailAndPassword(auth, email, senha);
+    const uid = userCred.user.uid;
 
-    // Pega o role no database
-    const snapshot = await get(ref(db, "usuarios/" + user.uid));
-    const data = snapshot.val();
+    const snapshot = await get(ref(db, 'usuarios/' + uid));
+    const dados = snapshot.val();
 
-    if (!data || !data.role) {
+    if (!dados || !dados.role) {
+      mensagem.textContent = "Usuário sem função definida.";
       mensagem.style.color = "red";
-      mensagem.textContent = "Usuário sem função definida. Contate o administrador.";
+      await auth.signOut();
+      botao.disabled = false;
       return;
     }
 
-    // Redireciona conforme role
-    if (data.role === "admin") {
-      window.location.href = "admin.html";
-    } else if (data.role === "tecnico") {
-      window.location.href = "tecnico.html";
+    if (dados.role === "admin") {
+      setTimeout(() => {
+        window.location.href = "admin.html";
+      }, 500);
+    } else if (dados.role === "tecnico") {
+      setTimeout(() => {
+        window.location.href = "tecnico.html";
+      }, 500);
     } else {
+      mensagem.textContent = "Função inválida.";
       mensagem.style.color = "red";
-      mensagem.textContent = "Função do usuário inválida.";
+      await auth.signOut();
+      botao.disabled = false;
     }
   } catch (error) {
+    mensagem.textContent = "Erro ao fazer login: " + error.message;
     mensagem.style.color = "red";
-    mensagem.textContent = "Erro: " + error.message;
-  }
-});
-
-// Se o usuário já estiver logado, já redireciona automaticamente
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    const snapshot = await get(ref(db, "usuarios/" + user.uid));
-    const data = snapshot.val();
-
-    if (data?.role === "admin") {
-      window.location.href = "admin.html";
-    } else if (data?.role === "tecnico") {
-      window.location.href = "tecnico.html";
-    }
+    botao.disabled = false;
   }
 });

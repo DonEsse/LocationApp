@@ -36,16 +36,17 @@ registroForm.addEventListener("submit", async (e) => {
 
   try {
     const credenciais = await createUserWithEmailAndPassword(auth, email, senha);
-    msg.textContent = "Técnico registrado com sucesso!";
+    msg.textContent = "Técnico cadastrado com sucesso!";
     const uid = credenciais.user.uid;
     await fetch(`https://locationapplemar-default-rtdb.firebaseio.com/usuarios/${uid}.json`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ funcao: "tecnico" })
     });
+    registroForm.reset();
   } catch (erro) {
-    msg.textContent = "Erro ao registrar técnico: " + erro.message;
-    console.error("Erro no registro:", erro);
+    msg.textContent = "Erro ao cadastrar técnico: " + erro.message;
+    console.error("Erro no cadastro:", erro);
   }
 });
 
@@ -59,16 +60,15 @@ const form = document.getElementById("form");
 const tabela = document.getElementById("tabela");
 const busca = document.getElementById("busca");
 
-let editKey = null; // Guarda a key da localização em edição
+let editKey = null;
 
-// Criar botão Cancelar edição dinamicamente e inserir no formulário
+// Botão cancelar edição
 const btnCancelarEdicao = document.createElement("button");
 btnCancelarEdicao.type = "button";
 btnCancelarEdicao.textContent = "Cancelar edição";
 btnCancelarEdicao.style.marginLeft = "10px";
 form.querySelector("button[type=submit]").insertAdjacentElement("afterend", btnCancelarEdicao);
 
-// Função cancelar edição
 btnCancelarEdicao.addEventListener("click", () => {
   editKey = null;
   form.reset();
@@ -76,29 +76,64 @@ btnCancelarEdicao.addEventListener("click", () => {
   btnCancelarEdicao.style.display = "none";
 });
 
-// Função para carregar localizações na tabela
 function carregarLocalizacoes() {
   onValue(ref(db, "localizacoes"), (snapshot) => {
-    tabela.innerHTML = "";
+    const dados = [];
     snapshot.forEach((child) => {
-      const { cliente, os, localizacao } = child.val();
-      const key = child.key;
+      dados.push({ key: child.key, ...child.val() });
+    });
+
+    tabela.innerHTML = "";
+    dados.reverse(); // Mostra os mais recentes primeiro
+    dados.slice(0, 10).forEach(({ key, cliente, conta, os, localizacao }) => {
       const linha = document.createElement("tr");
       linha.innerHTML = `
         <td>${cliente}</td>
+        <td>${conta}</td>
         <td>${os}</td>
         <td><a href="${localizacao}" target="_blank" rel="noopener noreferrer">Abrir Localização</a></td>
         <td>
-          <button onclick="editarLocalizacao('${key}', '${cliente}', '${os}', '${localizacao}')">Editar</button>
+          <button onclick="editarLocalizacao('${key}', '${cliente}', '${conta}', '${os}', '${localizacao}')">Editar</button>
           <button onclick="excluirLocalizacao('${key}')">Excluir</button>
         </td>
       `;
       tabela.appendChild(linha);
     });
-  }, { onlyOnce: false }); // Mantém escutando mudanças para atualizar tabela
+
+    // Armazena todos para "Carregar mais"
+    todasLocalizacoes = dados;
+    quantidadeMostrada = 10;
+  }, { onlyOnce: false });
 }
 
 carregarLocalizacoes();
+
+let todasLocalizacoes = [];
+let quantidadeMostrada = 10;
+
+document.getElementById("carregar-mais").addEventListener("click", () => {
+  const novaQuantidade = quantidadeMostrada + 10;
+  const novosDados = todasLocalizacoes.slice(0, novaQuantidade);
+  tabela.innerHTML = "";
+
+  novosDados.forEach(({ key, cliente, conta, os, localizacao }) => {
+    const linha = document.createElement("tr");
+    linha.innerHTML = `
+      <td>${cliente}</td>
+      <td>${conta}</td>
+      <td>${os}</td>
+      <td><a href="${localizacao}" target="_blank" rel="noopener noreferrer">Abrir Localização</a></td>
+      <td>
+        <button onclick="editarLocalizacao('${key}', '${cliente}', '${conta}', '${os}', '${localizacao}')">Editar</button>
+        <button onclick="excluirLocalizacao('${key}')">Excluir</button>
+      </td>
+    `;
+    tabela.appendChild(linha);
+  });
+
+  quantidadeMostrada = novaQuantidade;
+});
+
 
 // Filtro de busca
 busca.addEventListener("input", () => {
@@ -110,34 +145,32 @@ busca.addEventListener("input", () => {
   });
 });
 
-// Envio e atualização de localização com verificação de OS duplicada
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   const cliente = document.getElementById("cliente").value.trim();
+  const conta = document.getElementById("conta").value.trim();
   const os = document.getElementById("os").value.trim();
   const localizacao = document.getElementById("localizacao").value.trim();
 
   const localizacoesRef = ref(db, "localizacoes");
 
-  // Usar get() em vez de onValue para pegar dados uma vez (importar get do Firebase)
   import('https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js').then(({ get }) => {
     get(localizacoesRef).then((snapshot) => {
       let duplicada = false;
       snapshot.forEach((child) => {
-        if (child.val().os === os && child.key !== editKey) {
+        if (child.val().conta === conta && child.key !== editKey) {
           duplicada = true;
         }
       });
 
       if (duplicada) {
-        alert("Essa OS já está cadastrada.");
+        alert("Essa Conta já está cadastrada.");
         return;
       }
 
       if (editKey) {
-        // Atualiza localização existente
         const updates = {};
-        updates[`localizacoes/${editKey}`] = { cliente, os, localizacao };
+        updates[`localizacoes/${editKey}`] = { cliente, conta, os, localizacao };
         update(ref(db), updates)
           .then(() => {
             alert("Localização atualizada com sucesso.");
@@ -148,17 +181,16 @@ form.addEventListener("submit", (e) => {
           })
           .catch((error) => alert("Erro ao atualizar: " + error.message));
       } else {
-        // Adiciona nova localização
-        push(localizacoesRef, { cliente, os, localizacao });
+        push(localizacoesRef, { cliente, conta, os, localizacao });
         form.reset();
       }
     }).catch(err => console.error("Erro ao obter localizações:", err));
   });
 });
 
-// Função para editar localização
-window.editarLocalizacao = (key, cliente, os, localizacao) => {
+window.editarLocalizacao = (key, cliente, conta, os, localizacao) => {
   document.getElementById("cliente").value = cliente;
+  document.getElementById("conta").value = conta;
   document.getElementById("os").value = os;
   document.getElementById("localizacao").value = localizacao;
 
@@ -167,7 +199,6 @@ window.editarLocalizacao = (key, cliente, os, localizacao) => {
   btnCancelarEdicao.style.display = "inline-block";
 };
 
-// Função para excluir localização
 window.excluirLocalizacao = (key) => {
   if (confirm("Deseja excluir esta localização?")) {
     remove(ref(db, `localizacoes/${key}`))
@@ -180,7 +211,7 @@ window.excluirLocalizacao = (key) => {
   }
 };
 
-// Toggle menu admin (valida existência do botão e seção)
+// Toggle menu admin
 const toggle = document.getElementById("toggle-admin-section");
 const adminSection = document.getElementById("admin-section");
 if (toggle && adminSection) {
@@ -189,5 +220,4 @@ if (toggle && adminSection) {
   });
 }
 
-// Esconde botão cancelar edição inicialmente
 btnCancelarEdicao.style.display = "none";
