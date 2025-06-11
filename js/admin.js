@@ -1,6 +1,19 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+  createUserWithEmailAndPassword,
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import {
+  getDatabase,
+  ref,
+  push,
+  onValue,
+  update,
+  remove,
+  get,
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBfg_lRG34ys48oC0c656z8nD3RMSuG_7s",
@@ -16,6 +29,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
+
+// Função debounce
+function debounce(func, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), delay);
+  };
+}
 
 const conteudo = document.getElementById("conteudo");
 onAuthStateChanged(auth, (user) => {
@@ -51,8 +73,7 @@ registroForm.addEventListener("submit", async (e) => {
 });
 
 // Logout
-const botaoLogout = document.getElementById("logout");
-botaoLogout.addEventListener("click", () => {
+document.getElementById("logout").addEventListener("click", () => {
   signOut(auth).catch(console.error);
 });
 
@@ -60,6 +81,8 @@ const form = document.getElementById("form");
 const tabela = document.getElementById("tabela");
 const busca = document.getElementById("busca");
 
+let todasLocalizacoes = [];
+let quantidadeMostrada = 10;
 let editKey = null;
 
 // Botão cancelar edição
@@ -67,6 +90,7 @@ const btnCancelarEdicao = document.createElement("button");
 btnCancelarEdicao.type = "button";
 btnCancelarEdicao.textContent = "Cancelar edição";
 btnCancelarEdicao.style.marginLeft = "10px";
+btnCancelarEdicao.style.display = "none";
 form.querySelector("button[type=submit]").insertAdjacentElement("afterend", btnCancelarEdicao);
 
 btnCancelarEdicao.addEventListener("click", () => {
@@ -76,6 +100,7 @@ btnCancelarEdicao.addEventListener("click", () => {
   btnCancelarEdicao.style.display = "none";
 });
 
+// Carrega e armazena todos os dados
 function carregarLocalizacoes() {
   onValue(ref(db, "localizacoes"), (snapshot) => {
     const dados = [];
@@ -83,40 +108,14 @@ function carregarLocalizacoes() {
       dados.push({ key: child.key, ...child.val() });
     });
 
-    tabela.innerHTML = "";
-    dados.reverse(); // Mostra os mais recentes primeiro
-    dados.slice(0, 10).forEach(({ key, cliente, conta, os, localizacao }) => {
-      const linha = document.createElement("tr");
-      linha.innerHTML = `
-        <td>${cliente}</td>
-        <td>${conta}</td>
-        <td>${os}</td>
-        <td><a href="${localizacao}" target="_blank" rel="noopener noreferrer">Abrir Localização</a></td>
-        <td>
-          <button onclick="editarLocalizacao('${key}', '${cliente}', '${conta}', '${os}', '${localizacao}')">Editar</button>
-          <button onclick="excluirLocalizacao('${key}')">Excluir</button>
-        </td>
-      `;
-      tabela.appendChild(linha);
-    });
-
-    // Armazena todos para "Carregar mais"
-    todasLocalizacoes = dados;
-    quantidadeMostrada = 10;
+    todasLocalizacoes = dados.reverse();
+    exibirNaTabela(todasLocalizacoes.slice(0, quantidadeMostrada));
   }, { onlyOnce: false });
 }
 
-carregarLocalizacoes();
-
-let todasLocalizacoes = [];
-let quantidadeMostrada = 10;
-
-document.getElementById("carregar-mais").addEventListener("click", () => {
-  const novaQuantidade = quantidadeMostrada + 10;
-  const novosDados = todasLocalizacoes.slice(0, novaQuantidade);
+function exibirNaTabela(dados) {
   tabela.innerHTML = "";
-
-  novosDados.forEach(({ key, cliente, conta, os, localizacao }) => {
+  dados.forEach(({ key, cliente, conta, os, localizacao }) => {
     const linha = document.createElement("tr");
     linha.innerHTML = `
       <td>${cliente}</td>
@@ -130,20 +129,37 @@ document.getElementById("carregar-mais").addEventListener("click", () => {
     `;
     tabela.appendChild(linha);
   });
+}
 
-  quantidadeMostrada = novaQuantidade;
+document.getElementById("carregar-mais").addEventListener("click", () => {
+  quantidadeMostrada += 10;
+  exibirNaTabela(todasLocalizacoes.slice(0, quantidadeMostrada));
 });
 
-
-// Filtro de busca
-busca.addEventListener("input", () => {
+// Busca com debounce (500ms)
+busca.addEventListener("input", debounce(async () => {
   const termo = busca.value.toLowerCase();
-  const linhas = tabela.querySelectorAll("tr");
-  linhas.forEach((linha) => {
-    const texto = linha.textContent.toLowerCase();
-    linha.style.display = texto.includes(termo) ? "" : "none";
-  });
-});
+
+  try {
+    const snapshot = await get(ref(db, "localizacoes"));
+    const resultados = [];
+
+    snapshot.forEach((child) => {
+      const { cliente = "", conta = "", os = "", localizacao = "" } = child.val();
+      if (
+        cliente.toLowerCase().includes(termo) ||
+        conta.toLowerCase().includes(termo) ||
+        os.toLowerCase().includes(termo)
+      ) {
+        resultados.push({ key: child.key, cliente, conta, os, localizacao });
+      }
+    });
+
+    exibirNaTabela(resultados);
+  } catch (error) {
+    console.error("Erro ao buscar:", error);
+  }
+}, 500)); // <- tempo em milissegundos
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -154,38 +170,36 @@ form.addEventListener("submit", (e) => {
 
   const localizacoesRef = ref(db, "localizacoes");
 
-  import('https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js').then(({ get }) => {
-    get(localizacoesRef).then((snapshot) => {
-      let duplicada = false;
-      snapshot.forEach((child) => {
-        if (child.val().conta === conta && child.key !== editKey) {
-          duplicada = true;
-        }
-      });
-
-      if (duplicada) {
-        alert("Essa Conta já está cadastrada.");
-        return;
+  get(localizacoesRef).then((snapshot) => {
+    let duplicada = false;
+    snapshot.forEach((child) => {
+      if (child.val().conta === conta && child.key !== editKey) {
+        duplicada = true;
       }
+    });
 
-      if (editKey) {
-        const updates = {};
-        updates[`localizacoes/${editKey}`] = { cliente, conta, os, localizacao };
-        update(ref(db), updates)
-          .then(() => {
-            alert("Localização atualizada com sucesso.");
-            form.reset();
-            editKey = null;
-            form.querySelector("button[type=submit]").textContent = "Enviar";
-            btnCancelarEdicao.style.display = "none";
-          })
-          .catch((error) => alert("Erro ao atualizar: " + error.message));
-      } else {
-        push(localizacoesRef, { cliente, conta, os, localizacao });
-        form.reset();
-      }
-    }).catch(err => console.error("Erro ao obter localizações:", err));
-  });
+    if (duplicada) {
+      alert("Essa Conta já está cadastrada.");
+      return;
+    }
+
+    if (editKey) {
+      const updates = {};
+      updates[`localizacoes/${editKey}`] = { cliente, conta, os, localizacao };
+      update(ref(db), updates)
+        .then(() => {
+          alert("Localização atualizada com sucesso.");
+          form.reset();
+          editKey = null;
+          form.querySelector("button[type=submit]").textContent = "Enviar";
+          btnCancelarEdicao.style.display = "none";
+        })
+        .catch((error) => alert("Erro ao atualizar: " + error.message));
+    } else {
+      push(localizacoesRef, { cliente, conta, os, localizacao });
+      form.reset();
+    }
+  }).catch(err => console.error("Erro ao obter localizações:", err));
 });
 
 window.editarLocalizacao = (key, cliente, conta, os, localizacao) => {
@@ -202,12 +216,8 @@ window.editarLocalizacao = (key, cliente, conta, os, localizacao) => {
 window.excluirLocalizacao = (key) => {
   if (confirm("Deseja excluir esta localização?")) {
     remove(ref(db, `localizacoes/${key}`))
-      .then(() => {
-        alert("Localização excluída com sucesso.");
-      })
-      .catch((error) => {
-        alert("Erro ao excluir localização: " + error.message);
-      });
+      .then(() => alert("Localização excluída com sucesso."))
+      .catch((error) => alert("Erro ao excluir localização: " + error.message));
   }
 };
 
@@ -220,4 +230,4 @@ if (toggle && adminSection) {
   });
 }
 
-btnCancelarEdicao.style.display = "none";
+carregarLocalizacoes();

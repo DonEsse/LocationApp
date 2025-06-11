@@ -22,8 +22,18 @@ const busca = document.getElementById('busca');
 const logoutBtn = document.getElementById('logout');
 const contador = document.getElementById('contador');
 
+
 let todasLocalizacoes = [];
 let quantidadeMostrada = 10;
+let termoBusca = "";
+
+function debounce(func, delay) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+}
 
 onAuthStateChanged(auth, async user => {
   if (!user) {
@@ -49,19 +59,6 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-busca.addEventListener("input", () => {
-  const termo = busca.value.toLowerCase();
-  const linhas = tabela.querySelectorAll("tr");
-  let visiveis = 0;
-  linhas.forEach((linha) => {
-    const texto = linha.textContent.toLowerCase();
-    const visivel = texto.includes(termo);
-    linha.style.display = visivel ? "" : "none";
-    if (visivel) visiveis++;
-  });
-  contador.textContent = `Exibindo ${visiveis} de ${todasLocalizacoes.length} localizações cadastradas.`;
-});
-
 function carregarLocalizacoes() {
   onValue(ref(db, "localizacoes"), (snapshot) => {
     const dados = [];
@@ -69,17 +66,25 @@ function carregarLocalizacoes() {
       dados.push({ key: child.key, ...child.val() });
     });
 
-    tabela.innerHTML = "";
-    dados.reverse(); // mais recentes primeiro
-
-    todasLocalizacoes = dados;
+    todasLocalizacoes = dados.reverse(); // mais recentes primeiro
     quantidadeMostrada = 10;
     atualizarTabela();
   }, { onlyOnce: false });
 }
 
 function atualizarTabela() {
-  const dadosExibidos = todasLocalizacoes.slice(0, quantidadeMostrada);
+  let dadosFiltrados = todasLocalizacoes;
+
+  if (termoBusca) {
+    const termo = termoBusca.toLowerCase();
+    dadosFiltrados = todasLocalizacoes.filter(item =>
+      (item.cliente || "").toLowerCase().includes(termo) ||
+      (item.conta || "").toLowerCase().includes(termo) ||
+      (item.os || "").toLowerCase().includes(termo)
+    );
+  }
+
+  const dadosExibidos = dadosFiltrados.slice(0, quantidadeMostrada);
   tabela.innerHTML = "";
 
   dadosExibidos.forEach(({ key, cliente, conta, os, localizacao }) => {
@@ -96,6 +101,14 @@ function atualizarTabela() {
   contador.textContent = `Exibindo ${dadosExibidos.length} de ${todasLocalizacoes.length} localizações cadastradas.`;
 }
 
+const buscarComDebounce = debounce(() => {
+  termoBusca = busca.value.trim();
+  quantidadeMostrada = 10;
+  atualizarTabela();
+}, 300);
+
+busca.addEventListener("input", buscarComDebounce);
+
 document.getElementById("carregar-mais").addEventListener("click", () => {
   quantidadeMostrada += 10;
   atualizarTabela();
@@ -105,3 +118,4 @@ logoutBtn.addEventListener('click', async () => {
   await signOut(auth);
   window.location.href = 'login.html';
 });
+
